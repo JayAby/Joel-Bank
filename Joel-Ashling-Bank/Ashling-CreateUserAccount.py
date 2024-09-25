@@ -1,6 +1,17 @@
+import random
+from email.mime.base import MIMEBase
 from tkinter import *
 from tkinter import font
+from tkinter import messagebox
 from PIL import ImageTk, Image
+import re  # Import regular expression suport
+from datetime import datetime
+import sqlite3
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email import encoders
+import os
 
 
 class UserSignup:
@@ -27,6 +38,11 @@ class UserSignup:
         self.side_logo_label = Label(self.signup_frame, image=photo, bg='#f0f0f0')
         self.side_logo_label.image = photo
         self.side_logo_label.place(x=90, y=80)
+
+        # Set Window Icon
+        window_logo = Image.open('Image/AshlingBank.png')
+        window_logo = ImageTk.PhotoImage(window_logo)
+        window.iconphoto(False, window_logo)
 
         # Textboxes with placeholders
         self.firstname_placeholder_text = 'Firstname'
@@ -95,7 +111,6 @@ class UserSignup:
         self.show_password_btn.bind("<Button-1>", self.toggle_password)
         self.show_password_btn.place(x=820, y=280, width=100, height=30)
 
-
     def toggle_password(self, event):
         if self.password.cget('show') == '•':
             self.password.config(show='')
@@ -103,8 +118,187 @@ class UserSignup:
         else:
             self.password.config(show='•')
             self.show_password_btn.config(text='Show password')
+
     def create_account(self, event):
-        print("It works")
+        firstname = self.firstname.get()
+        lastname = self.lastname.get()
+        email_address = self.email.get()
+        date_of_birth = self.date_of_birth.get()
+        password = self.password.get()
+        confirm_password = self.confirm_password.get()
+
+        # Check for placeholder text, if any return error
+        if firstname == self.firstname_placeholder_text or lastname == self.lastname_placeholder_text or email_address == self.email_placeholder_text or date_of_birth == self.date_of_birth_placeholder_text or password == self.password_placeholder_text or confirm_password == self.confirm_password_placeholder_text:
+            messagebox.showerror("AshlingBank- Error Message", "Blank Spaces cannot be saved!")
+            return
+
+        # Check if passwords match
+        if confirm_password != password:
+            messagebox.showerror("AshlingBank - Error Message", "Passwords do not match!")
+            return
+
+        # Email validation
+        valid_email = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z{2,}$]', email_address)
+        if valid_email:
+            pass
+        else:
+            messagebox.showerror("AshlingBank- Error Message", "Invalid email format")
+            return
+
+        # Validate the date of birth format
+        date_register = r"^\d{2}/\d{2}/\d{4}$"
+        if not re.match(date_register, date_of_birth):
+            messagebox.showerror("AshlingBank- Error Message", "Date of Birth Format must be in dd/mm/yyyy")
+            return
+
+        try:
+            # Convert to a datetime object
+            dob = datetime.strptime(date_of_birth, "%d/%m/%Y")
+
+            # Get the current date
+            today = datetime.today()
+
+            # Calculate the user's age
+            age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+            # Check if the user is atleast 16 years old
+            if age < 16:
+                messagebox.showerror("AshlingBank- Error Message", "You must be atleast 16 years to create an account")
+                return
+
+            # Check for invalid days based on the month
+            day = dob.day
+            month = dob.month
+            if month == 2:  # February Leap Year Checker
+                if day > 29 or (day == 29 and not (dob.year % 4 == 0 and (dob.year % 100 != 0 or dob.year % 400 == 0))):
+                    messagebox.showerror("AshlingBank- Error Message",
+                                         "Invalid day for February")
+                    return
+            elif month in [4, 6, 9, 11]:  # Month with 30 days
+                if day > 30:
+                    messagebox.showerror("AshlingBank- Error Message", "This month only has 30 days")
+                    return
+
+            sort_code, account_number = self.generate_account_details()
+
+            # Format the dates to a string format for the db
+            dob_str = dob.strftime("%Y-%m-%d")
+            today_str = today.strftime("%Y-%m-%d")
+
+            # If all Validations pass
+            # Connect to DB
+            db = sqlite3.connect('CustomerRecords.db')
+            insert_query1 = (
+                "insert into customerRec(firstname, lastname, email, dob, password, sortcode, accountnumber, datecreated) values (?,?,?,?,?,?,?,?);")
+
+            try:
+                cursor = db.cursor()
+                cursor.execute(insert_query1, (
+                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, today_str))
+                db.commit()
+                messagebox.showinfo("AshlingBank- Confirmation",
+                                    "Details Saved! Your Account Number is: " + account_number + "\nYour sort code is: " + sort_code)
+
+                # Send confirmation mail
+                self.send_confirmation_email(firstname, lastname, email_address, account_number, sort_code, today_str)
+                self.clear_all()
+
+            except Exception as e:
+                print(f'Error: {e}')
+                messagebox.showerror("AshlingBank- Error", "Data can't be saved")
+                db.rollback()
+            db.close()
+
+        except ValueError:
+            # if date conversion fails, it means the date is invalid
+            messagebox.showerror("AshlingBank- Error Message",
+                                 "Invalid date. Please enter a valid date in dd/mm/yyyy format.")
+    def clear_all(self):
+        self.firstname.delete(0,"end")
+        self.lastname.delete(0,"end")
+        self.email.delete(0,"end")
+        self.date_of_birth.delete(0,"end")
+        self.password.delete(0,"end")
+        self.confirm_password.delete(0,"end")
+
+    def send_confirmation_email(self, firstname, lastname, email_address, account_number, sort_code, today_str):
+        # Email setup
+        sender_email = "jay.aby.codes@gmail.com"
+        sender_password = "jwcabxkjbjjoqbck"
+        subject = "Welcome to Ashling Bank - Your Account Details"
+
+        # Create the email content
+        message = MIMEMultipart()
+        message['From'] = sender_email
+        message['To'] = email_address
+        message['Subject'] = subject
+
+        # Email body
+        body = f"""
+        Dear {firstname} {lastname},
+        
+        Thank you for creating an account with Ashling Bank.
+        Here are your account details:
+        
+        Account Number: {account_number}
+        Sort Code: {sort_code}
+        Date Created: {today_str}
+        
+        Please keep these details safe.
+        
+        Best regards,
+        Ashling Bank Team
+        """
+
+        message.attach(MIMEText(body, 'plain'))
+
+        # Attaching an image
+        image_path = "Image/AshlingBank.png"
+        try:
+            with open(image_path, "rb") as image_file:
+                # Set the MIMEBase object
+                image = MIMEBase('application', 'octet-stream')
+                image.set_payload(image_file.read())
+
+                # Encode the image in base64 and attach it to the email
+                encoders.encode_base64(image)
+
+                # Add the necessary headers for the image
+                image.add_header('Content-Disposition', f"attachment; filename = {os.path.basename(image_path)}")
+
+                # Attach the image to the message
+                message.attach(image)
+
+        except Exception as e:
+            print(f"Error attaching image: {e}")
+
+        # Sending the email
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            text = message.as_string()
+            server.sendmail(sender_email, email_address, text)
+            server.quit()
+            print("Email sent successfully")
+        except Exception as e:
+            print(f"Error sending email: {e}")
+
+    def generate_account_details(self):
+        # Generate the account number
+        account_length = 10
+        account_string = "0123456789"
+        account_number = "".join(random.sample(account_string, k=account_length))
+
+        # Generate the sort code
+        part1 = random.randint(10, 99)
+        part2 = random.randint(10, 99)
+        part3 = random.randint(10, 99)
+
+        # Format as a sort code
+        sort_code = f"{part1:02d}-{part2:02d}-{part3:02d}"
+
+        return sort_code, account_number
 
     def on_entry_click(self, event):
         # Remove placeholder text when entry is clicked
