@@ -1,15 +1,15 @@
 import sqlite3
 
-db = sqlite3.connect('CustomerRecords.db')
+db = sqlite3.connect('Ashling-UserRecords.db')
 try:
     cursor = db.cursor()
 
     # Create user details table
-    cursor.execute('''CREATE TABLE customerRec (
+    cursor.execute('''CREATE TABLE userRecords (
         sid INTEGER PRIMARY KEY AUTOINCREMENT,
         firstname VARCHAR(30) NOT NULL,
         lastname VARCHAR(30) NOT NULL,
-        email VARCHAR(50) NOT NULL,
+        email VARCHAR(50) UNIQUE NOT NULL,
         dob VARCHAR(10) NOT NULL,
         password VARCHAR(25) NOT NULL,
         sortcode VARCHAR(10) NOT NULL,

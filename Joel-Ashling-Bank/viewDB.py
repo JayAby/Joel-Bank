@@ -1,11 +1,11 @@
 import sqlite3
 
 # Connect to the database
-db = sqlite3.connect('CustomerRecords.db')
+db = sqlite3.connect('Ashling-UserRecords.db')
 
 # Query to select all records
-viewquery = "SELECT * FROM customerRec;"
-removequery = "DELETE FROM customerRec;"
+viewquery = "SELECT * FROM userRecords;"
+removequery = "DELETE FROM userRecords;"
 
 cursor = db.cursor()
 

@@ -187,9 +187,9 @@ class UserSignup:
 
             # If all Validations pass
             # Connect to DB
-            db = sqlite3.connect('CustomerRecords.db')
+            db = sqlite3.connect('Ashling-UserRecords.db')
             insert_query1 = (
-                "insert into customerRec(firstname, lastname, email, dob, password, sortcode, accountnumber, datecreated) values (?,?,?,?,?,?,?,?);")
+                "insert into userRecords(firstname, lastname, email, dob, password, sortcode, accountnumber, datecreated) values (?,?,?,?,?,?,?,?);")
 
             try:
                 cursor = db.cursor()
@@ -211,7 +211,7 @@ class UserSignup:
 
         except ValueError:
             # if date conversion fails, it means the date is invalid
-            messagebox.showerror("AshlingBank- Error Message",
+            messagebox.showerror("AshlingBank- Error",
                                  "Invalid date. Please enter a valid date in dd/mm/yyyy format.")
     def clear_all(self):
         self.firstname.delete(0,"end")
