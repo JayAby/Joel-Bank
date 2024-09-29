@@ -14,6 +14,7 @@ try:
         password VARCHAR(25) NOT NULL,
         sortcode VARCHAR(10) NOT NULL,
         accountnumber INTEGER(12) UNIQUE NOT NULL,
+        pin INTEGER(5),
         datecreated VARCHAR(10) NOT NULL);''')
 
     db.commit()

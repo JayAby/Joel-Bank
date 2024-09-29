@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
 import os
+import customtkinter
 
 
 class UserSignup:
@@ -185,19 +186,29 @@ class UserSignup:
             dob_str = dob.strftime("%Y-%m-%d")
             today_str = today.strftime("%Y-%m-%d")
 
-            # If all Validations pass
+            # Default pin
+            default_pin = self.get_user_pin(account_number, sort_code)
+
+            if default_pin is None:
+                messagebox.showerror("AshlingBank- Error", "Account creation cancelled due to PIN setup cancellation")
+                return
+
+            # If all Validations pass including PIN validation
             # Connect to DB
             db = sqlite3.connect('Ashling-UserRecords.db')
             insert_query1 = (
-                "insert into userRecords(firstname, lastname, email, dob, password, sortcode, accountnumber, datecreated) values (?,?,?,?,?,?,?,?);")
+                "insert into userRecords(firstname, lastname, email, dob, password, sortcode, accountnumber, datecreated, pin) values (?,?,?,?,?,?,?,?,?);")
 
             try:
                 cursor = db.cursor()
                 cursor.execute(insert_query1, (
-                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, today_str))
+                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, today_str, default_pin))
                 db.commit()
+
                 messagebox.showinfo("AshlingBank- Confirmation",
                                     "Details Saved! Your Account Number is: " + account_number + "\nYour sort code is: " + sort_code)
+
+
 
                 # Send confirmation mail
                 self.send_confirmation_email(firstname, lastname, email_address, account_number, sort_code, today_str)
@@ -213,6 +224,49 @@ class UserSignup:
             # if date conversion fails, it means the date is invalid
             messagebox.showerror("AshlingBank- Error",
                                  "Invalid date. Please enter a valid date in dd/mm/yyyy format.")
+
+    def save_pin(self, account_number, user_pin):
+        db = sqlite3.connect('Ashling-UserRecords.db')
+        update_query = "UPDATE userRecords SET pin = ? WHERE accountnumber = ?"
+
+        try:
+            cursor = db.cursor()
+            cursor.execute(update_query, (user_pin, account_number))
+            db.commit()
+            print("PIN updated successfully")
+        except Exception as e:
+            print(f"Error: {e}")
+            db.rollback()
+        finally:
+            db.close()
+
+    def get_user_pin(self, account_number, sort_code):
+        while True:
+            # Display the input dialog for the user to enter their PIN
+            user_pin_dialog = customtkinter.CTkInputDialog(
+                text="Details Saved! Your Account Number is: " + account_number +
+                     "\nYour Sort Code is: " + sort_code +
+                     "\n\nPlease enter a 4-digit PIN:",
+                title="AshlingBank - PIN Setup"
+            )
+
+            # Retrieve the user's input
+            user_pin = user_pin_dialog.get_input()
+
+            # If the user cancels the PIN setup (user_pin is None)
+            if user_pin is None:
+                messagebox.showerror("AshlingBank - Error", "PIN setup was canceled.")
+                return None  # Return None to indicate the cancellation
+
+            # PIN validation: check if the input is a 4-digit number
+            if user_pin.isdigit() and len(user_pin) == 4:
+                messagebox.showinfo("AshlingBank - Confirmation", "Your 4-digit PIN has been saved successfully.")
+                return user_pin  # Return the valid PIN
+            else:
+                # If the PIN is invalid, show an error and keep the dialog open
+                messagebox.showerror("AshlingBank - Error", "Invalid PIN. Please enter a 4-digit PIN.")
+                # Loop continues to show the input dialog again
+
     def clear_all(self):
         self.firstname.delete(0,"end")
         self.lastname.delete(0,"end")
