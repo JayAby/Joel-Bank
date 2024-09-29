@@ -72,5 +72,5 @@ class UserSignup:
 if __name__ == "__main__":
     window = Tk()
     UserSignup(window)
-    window.title("Ashling-Create Account")
+    window.title("Ashling-User Menu")
     window.mainloop()
