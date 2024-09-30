@@ -21,19 +21,19 @@ class UserSignup:
         self.window.configure(bg='#ffffff')
 
         # Create a frame for the signup section
-        self.signup_frame = Frame(self.window, width=1200, height=500, bg='#f0f0f0')
-        self.signup_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
+        self.login_frame = Frame(self.window, width=1200, height=500, bg='#f0f0f0')
+        self.login_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
         # Text
         self.txt = 'L o g i n'
         signup_font = font.Font(family="Verdana", size=30, weight="bold")
-        self.heading = Label(self.signup_frame, text=self.txt, font=signup_font, fg='#000000', bg='#f0f0f0')
+        self.heading = Label(self.login_frame, text=self.txt, font=signup_font, fg='#000000', bg='#f0f0f0')
         self.heading.place(x=46, y=290, width=400, height=60)
 
         # Logo
         self.side_logo = Image.open('Image/AshlingBankSmall.png')
         photo = ImageTk.PhotoImage(self.side_logo)
-        self.side_logo_label = Label(self.signup_frame, image=photo, bg='#f0f0f0')
+        self.side_logo_label = Label(self.login_frame, image=photo, bg='#f0f0f0')
         self.side_logo_label.image = photo
         self.side_logo_label.place(x=90, y=80)
 
@@ -47,7 +47,7 @@ class UserSignup:
         self.password_placeholder_text = 'Password'
 
         # Email Entry
-        self.email = Entry(self.signup_frame, highlightthickness=2, relief=FLAT, bg='#f0f0f0', fg='grey',
+        self.email = Entry(self.login_frame, highlightthickness=2, relief=FLAT, bg='#f0f0f0', fg='grey',
                            font=('Helvetica', 12, 'bold'))
         self.email.insert(0, self.email_placeholder_text)
         self.email.bind("<FocusIn>", self.on_entry_click)
@@ -55,7 +55,7 @@ class UserSignup:
         self.email.place(x=620, y=160, width=300, height=30)
 
         # Password Entry
-        self.password = Entry(self.signup_frame, highlightthickness=2, relief=FLAT, bg='#f0f0f0', fg='grey',
+        self.password = Entry(self.login_frame, highlightthickness=2, relief=FLAT, bg='#f0f0f0', fg='grey',
                               font=('Helvetica', 12, 'bold'), show='')  # Initially show nothing
         self.password.insert(0, self.password_placeholder_text)  # Use the placeholder
         self.password.bind("<FocusIn>", self.on_password_focus)
@@ -66,18 +66,20 @@ class UserSignup:
 
         # Buttons/Labels
         # Using Labels because of the border around the button
-        self.login_btn = Label(self.signup_frame, highlightthickness=2, text='Login',
+        self.login_btn = Label(self.login_frame, highlightthickness=2, text='Login',
                                font=('Helvetica', 13, 'bold'), fg='black', bg='white',
                                bd=2, cursor='hand2')
         self.login_btn.bind("<Button-1>", self.login)
         self.login_btn.place(x=705, y=300)
 
-        self.show_password_btn = Label(self.signup_frame, highlightthickness=2, text='Show password',
+        self.show_password_btn = Label(self.login_frame, highlightthickness=2, text='Show password',
                                        font=('Helvetica', 12, 'bold'), fg='black', bg='white',
                                        bd=2, cursor='dot')
         self.show_password_btn.bind("<Button-1>", self.toggle_password)
         self.show_password_btn.place(x=820, y=220, width=100, height=30)
 
+
+    # Functions
 
     def login(self, event):
         # get the current day
@@ -120,7 +122,7 @@ class UserSignup:
         sender_password = "jwcabxkjbjjoqbck"
         subject = "Ashling Bank- Sign-In Notification"
 
-        # Create the email content
+        # Create the username content
         message = MIMEMultipart()
         message['From'] = sender_email
         message['To'] = email_address
@@ -130,7 +132,7 @@ class UserSignup:
         body = f"""
         Dear {firstname} ,
 
-        You are receiving this email because you have signed in using your account details on this day: {today_str}
+        You are receiving this username because you have signed in using your account details on this day: {today_str}
         
         If you didn't sign in, please do well to let us know
 
@@ -148,7 +150,7 @@ class UserSignup:
                 image = MIMEBase('application', 'octet-stream')
                 image.set_payload(image_file.read())
 
-                # Encode the image in base64 and attach it to the email
+                # Encode the image in base64 and attach it to the username
                 encoders.encode_base64(image)
 
                 # Add the necessary headers for the image
@@ -160,7 +162,7 @@ class UserSignup:
         except Exception as e:
             print(f"Error attaching image: {e}")
 
-        # Sending the email
+        # Sending the username
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
@@ -170,7 +172,7 @@ class UserSignup:
             server.quit()
             print("Email sent successfully")
         except Exception as e:
-            print(f"Error sending email: {e}")
+            print(f"Error sending username: {e}")
 
     def on_entry_click(self, event):
         # Remove placeholder text when entry is clicked

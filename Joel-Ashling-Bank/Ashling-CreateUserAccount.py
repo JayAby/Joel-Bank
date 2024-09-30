@@ -112,6 +112,8 @@ class UserSignup:
         self.show_password_btn.bind("<Button-1>", self.toggle_password)
         self.show_password_btn.place(x=820, y=280, width=100, height=30)
 
+    # Functions
+
     def toggle_password(self, event):
         if self.password.cget('show') == '•':
             self.password.config(show='')
@@ -143,7 +145,7 @@ class UserSignup:
         if valid_email:
             pass
         else:
-            messagebox.showerror("AshlingBank- Error Message", "Invalid email format")
+            messagebox.showerror("AshlingBank- Error Message", "Invalid username format")
             return
 
         # Validate the date of birth format
@@ -181,6 +183,7 @@ class UserSignup:
                     return
 
             sort_code, account_number = self.generate_account_details()
+            username = self.generate_username(firstname,lastname)
 
             # Format the dates to a string format for the db
             dob_str = dob.strftime("%Y-%m-%d")
@@ -197,12 +200,12 @@ class UserSignup:
             # Connect to DB
             db = sqlite3.connect('Ashling-UserRecords.db')
             insert_query1 = (
-                "insert into userRecords(firstname, lastname, email, dob, password, sortcode, accountnumber, datecreated, pin) values (?,?,?,?,?,?,?,?,?);")
+                "insert into userRecords(firstname, lastname, username, dob, password, sortcode, accountnumber, pin, username, datecreated) values (?,?,?,?,?,?,?,?,?,?);")
 
             try:
                 cursor = db.cursor()
                 cursor.execute(insert_query1, (
-                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, today_str, default_pin))
+                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, default_pin, username, today_str))
                 db.commit()
 
                 messagebox.showinfo("AshlingBank- Confirmation",
@@ -211,7 +214,7 @@ class UserSignup:
 
 
                 # Send confirmation mail
-                self.send_confirmation_email(firstname, lastname, email_address, account_number, sort_code, today_str)
+                self.send_confirmation_email(firstname, lastname, email_address, username, account_number, sort_code, today_str)
                 self.clear_all()
 
             except Exception as e:
@@ -224,6 +227,16 @@ class UserSignup:
             # if date conversion fails, it means the date is invalid
             messagebox.showerror("AshlingBank- Error",
                                  "Invalid date. Please enter a valid date in dd/mm/yyyy format.")
+
+    def generate_username(self, firstname, lastname):
+        get_firstname = firstname[:3]
+        get_lastname = lastname[:3]
+
+        value_length = 3
+        value_string = "0123456789"
+        username = get_firstname + get_lastname + "".join(random.sample(value_string, k=value_length))
+
+        return(username)
 
     def save_pin(self, account_number, user_pin):
         db = sqlite3.connect('Ashling-UserRecords.db')
@@ -275,13 +288,13 @@ class UserSignup:
         self.password.delete(0,"end")
         self.confirm_password.delete(0,"end")
 
-    def send_confirmation_email(self, firstname, lastname, email_address, account_number, sort_code, today_str):
+    def send_confirmation_email(self, firstname, lastname, email_address, username, account_number, sort_code, today_str):
         # Email setup
         sender_email = "jay.aby.codes@gmail.com"
         sender_password = "jwcabxkjbjjoqbck"
         subject = "Welcome to Ashling Bank - Your Account Details"
 
-        # Create the email content
+        # Create the username content
         message = MIMEMultipart()
         message['From'] = sender_email
         message['To'] = email_address
@@ -294,6 +307,7 @@ class UserSignup:
         Thank you for creating an account with Ashling Bank.
         Here are your account details:
         
+        Username : {username}
         Account Number: {account_number}
         Sort Code: {sort_code}
         Date Created: {today_str}
@@ -314,7 +328,7 @@ class UserSignup:
                 image = MIMEBase('application', 'octet-stream')
                 image.set_payload(image_file.read())
 
-                # Encode the image in base64 and attach it to the email
+                # Encode the image in base64 and attach it to the username
                 encoders.encode_base64(image)
 
                 # Add the necessary headers for the image
@@ -326,7 +340,7 @@ class UserSignup:
         except Exception as e:
             print(f"Error attaching image: {e}")
 
-        # Sending the email
+        # Sending the username
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
@@ -336,7 +350,7 @@ class UserSignup:
             server.quit()
             print("Email sent successfully")
         except Exception as e:
-            print(f"Error sending email: {e}")
+            print(f"Error sending username: {e}")
 
     def generate_account_details(self):
         # Generate the account number

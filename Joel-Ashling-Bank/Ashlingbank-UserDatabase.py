@@ -9,12 +9,13 @@ try:
         sid INTEGER PRIMARY KEY AUTOINCREMENT,
         firstname VARCHAR(30) NOT NULL,
         lastname VARCHAR(30) NOT NULL,
-        email VARCHAR(50) UNIQUE NOT NULL,
+        username VARCHAR(50) UNIQUE NOT NULL,
         dob VARCHAR(10) NOT NULL,
         password VARCHAR(25) NOT NULL,
         sortcode VARCHAR(10) NOT NULL,
         accountnumber INTEGER(12) UNIQUE NOT NULL,
         pin INTEGER(5),
+        username VARCHAR(25) UNIQUE NOT NULL,
         datecreated VARCHAR(10) NOT NULL);''')
 
     db.commit()
