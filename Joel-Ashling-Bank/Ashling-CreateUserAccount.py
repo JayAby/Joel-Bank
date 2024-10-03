@@ -200,12 +200,12 @@ class UserSignup:
             # Connect to DB
             db = sqlite3.connect('Ashling-UserRecords.db')
             insert_query1 = (
-                "insert into userRecords(firstname, lastname, username, dob, password, sortcode, accountnumber, pin, username, datecreated) values (?,?,?,?,?,?,?,?,?,?);")
+                "insert into userPersonalDetails(firstname, lastname, username, dob, password, sortcode, accountnumber, pin, username) values (?,?,?,?,?,?,?,?,?);")
 
             try:
                 cursor = db.cursor()
                 cursor.execute(insert_query1, (
-                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, default_pin, username, today_str))
+                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, default_pin, username))
                 db.commit()
 
                 messagebox.showinfo("AshlingBank- Confirmation",
@@ -237,10 +237,11 @@ class UserSignup:
         username = get_firstname + get_lastname + "".join(random.sample(value_string, k=value_length))
 
         return(username)
+    # I need to adjust the code so that it populate the account table as at the same time it's populating the customer personal details table
 
     def save_pin(self, account_number, user_pin):
         db = sqlite3.connect('Ashling-UserRecords.db')
-        update_query = "UPDATE userRecords SET pin = ? WHERE accountnumber = ?"
+        update_query = "UPDATE userPersonalDetails SET pin = ? WHERE accountnumber = ?"
 
         try:
             cursor = db.cursor()
