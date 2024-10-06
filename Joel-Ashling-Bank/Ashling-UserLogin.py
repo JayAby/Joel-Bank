@@ -98,7 +98,7 @@ class UserSignup:
             try:
                 cursor = db.cursor()
                 # use parameterized query to avoid SQL injection
-                cursor.execute("SELECT firstname, email, password FROM userRecords WHERE email=? AND password=?", (entered_email, entered_password))
+                cursor.execute("SELECT firstname, email, password FROM userPersonalDetails WHERE email=? AND password=?", (entered_email, entered_password))
                 record = cursor.fetchone()
 
                 if record:

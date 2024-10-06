@@ -24,13 +24,14 @@ try:
     # Create user account table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS userAccountDetails (
-        account_id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id TEXT,
         customer_id INTEGER,
         account_number INTEGER NOT NULL UNIQUE,
         sort_code TEXT NOT NULL,
         pin INTEGER NOT NULL,
-        initial_deposit REAL NOT NULL,
-        balance REAL,
+        initial_deposit REAL DEFAULT 0.0 NOT NULL,
+        balance REAL DEFAULT 0.0,
         datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES userPersonalDetails (customer_id) ON DELETE CASCADE 
     );

@@ -200,12 +200,33 @@ class UserSignup:
             # Connect to DB
             db = sqlite3.connect('Ashling-UserRecords.db')
             insert_query1 = (
-                "insert into userPersonalDetails(firstname, lastname, username, dob, password, sortcode, accountnumber, pin, username) values (?,?,?,?,?,?,?,?,?);")
+                "insert into userPersonalDetails(firstname, lastname, username, email, dob, password) values (?,?,?,?,?,?);"
+            )
+
+            insert_query2 = (
+                "insert into userAccountDetails(customer_id, account_number, sort_code, pin) values (?,?,?,?);"
+            )
 
             try:
                 cursor = db.cursor()
+                # Insert into user personal details
                 cursor.execute(insert_query1, (
-                    firstname, lastname, email_address, dob_str, password, sort_code, account_number, default_pin, username))
+                    firstname, lastname, username, email_address, dob_str, password))
+                # Get the last inserted customer_id
+                customer_id = cursor.lastrowid
+                # Insert into user account details
+                cursor.execute(insert_query2, (customer_id,account_number, sort_code, default_pin))
+                # Get the auto incremented id from the last insertion
+                auto_id = cursor.lastrowid
+                # Generate account id based on the auto incremented id
+                account_id = self.generate_account_id(auto_id)
+                # Update the record with the generated account id
+                cursor.execute('''
+                UPDATE userAccountDetails
+                SET account_id = ?
+                WHERE id = ?
+                ''', (account_id, auto_id))
+                # Commit the changes
                 db.commit()
 
                 messagebox.showinfo("AshlingBank- Confirmation",
@@ -228,6 +249,11 @@ class UserSignup:
             messagebox.showerror("AshlingBank- Error",
                                  "Invalid date. Please enter a valid date in dd/mm/yyyy format.")
 
+
+    # Function to generate account_id
+    def generate_account_id(self,auto_id):
+        return f"ABAN{auto_id:04d}"
+
     def generate_username(self, firstname, lastname):
         get_firstname = firstname[:3]
         get_lastname = lastname[:3]
@@ -237,7 +263,6 @@ class UserSignup:
         username = get_firstname + get_lastname + "".join(random.sample(value_string, k=value_length))
 
         return(username)
-    # I need to adjust the code so that it populate the account table as at the same time it's populating the customer personal details table
 
     def save_pin(self, account_number, user_pin):
         db = sqlite3.connect('Ashling-UserRecords.db')

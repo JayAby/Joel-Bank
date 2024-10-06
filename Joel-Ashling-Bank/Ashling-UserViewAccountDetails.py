@@ -80,20 +80,21 @@ class UserSignup:
         self.show_password_btn.bind("<Button-1>", self.toggle_password)
         self.show_password_btn.place(x=820, y=220, width=100, height=30)
 
+
     # Functions
 
     def reveal(self, event):
-        entered_username = self.username.get()
-        entere_password = self.password.get()
+        entered_username= self.username.get()
+        entered_password = self.password.get()
 
         db = sqlite3.connect("Ashling-UserRecords.db")
 
-        if entered_username == self.username_placeholder_text or entere_password == self.password_placeholder_text:
+        if entered_username == self.username_placeholder_text or entered_password == self.password_placeholder_text:
             messagebox.showerror("AshlingBank- Error", "Invalid Details")
         else:
             try:
                 cursor = db.cursor()
-                cursor.execute("SELECT firstname, username, password FROM userRecords WHERE username=? AND password=?", (entered_username, entere_password))
+                cursor.execute("SELECT firstname, username, password FROM userPersonalDetails WHERE username=? AND password=?", (entered_username, entered_password))
                 record = cursor.fetchone()
 
                 if record:
@@ -112,6 +113,9 @@ class UserSignup:
 
     # Functions
     def reset_entry(self):
+        entered_username= self.username.get()
+        entered_password = self.password.get()
+
         self.username.destroy()
         self.password.destroy()
         self.show_password_btn.destroy()
@@ -148,8 +152,37 @@ class UserSignup:
         self.deposit_btn.bind("<Button-1>")
         self.deposit_btn.place(x=730, y=420)
 
+        # Get the values from the db
+        db = sqlite3.connect('Ashling-UserRecords.db')
+        cursor = db.cursor()
+        # Query to join tables and retrieve neccesary details
+        cursor.execute('''
+        SELECT userAccountDetails.balance, userAccountDetails.account_number, userAccountDetails.sort_code
+        FROM userAccountDetails
+        JOIN userPersonalDetails ON userAccountDetails.customer_id = userPersonalDetails.customer_id
+        WHERE userPersonalDetails.username = ? AND userPersonalDetails.password = ?;
+        ''', (entered_username, entered_password))
 
+        # fetch the result
+        result = cursor.fetchone()
 
+        # Check if result was found
+        if result:
+            balance, account_number, sort_code = result
+            self.account_balance.delete(0,END)
+            self.account_balance.insert(0,balance)
+            self.account_balance.config(state=DISABLED)
+            self.account_number.delete(0, END)
+            self.account_number.insert(0, account_number)
+            self.account_number.config(state=DISABLED)
+            self.sortcode.delete(0,END)
+            self.sortcode.insert(0,sort_code)
+            self.sortcode.config(state=DISABLED)
+
+        else:
+            messagebox.showerror("AshlingBank- Error", "No matching records found or Incorrect username/password")
+
+        db.close()
 
     def on_entry_click(self, event):
         # Remove placeholder text when entry is clicked
