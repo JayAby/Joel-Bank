@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import font
 from PIL import ImageTk, Image
 
-class UserSignup:
+class UserMenu:
     def __init__(self, window):
         self.window = window
         self.window.geometry('1024x768')
@@ -71,6 +71,6 @@ class UserSignup:
 
 if __name__ == "__main__":
     window = Tk()
-    UserSignup(window)
+    UserMenu(window)
     window.title("Ashling-User Menu")
     window.mainloop()

@@ -1,27 +1,24 @@
-from email.mime.base import MIMEBase
 from tkinter import *
 from tkinter import ttk
 from tkinter import font
 from tkinter import messagebox
 from PIL import ImageTk, Image
-from datetime import datetime
 import sqlite3
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email import encoders
-import os
+import customtkinter
 
 
-class UserSignup:
+class UserViewAccount:
     def __init__(self, window):
         self.window = window
+        self.setup_ui()
+
+    def setup_ui(self):
         self.window.geometry('1024x768')
         self.window.state('zoomed')
         self.window.resizable(0, 0)
         self.window.configure(bg='#ffffff')
 
-        # Create a frame for the signup section
+        # Create a frame for the account details section
         self.account_details_frame = Frame(self.window, width=1200, height=500, bg='#f0f0f0')
         self.account_details_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
@@ -82,34 +79,66 @@ class UserSignup:
 
 
     # Functions
+    def save_money(self):
+        pass
+
+    def add_money(self, event):
+        while True:
+            # Display the input dialog to ask user how much they want to deposit
+            deposit_amount_dialog = customtkinter.CTkInputDialog(text="How much would you like to Add? ", title="AshlingBank- Deposit")
+
+            # Retreive User input
+            deposit_amount = deposit_amount_dialog.get_input()
+
+            if deposit_amount is None:
+                messagebox.showerror("AshlingBank- Error", "No amount added.")
+                return None
+
+            try:
+                deposit_amount = float(deposit_amount)
+                if deposit_amount <= 0:
+                    messagebox.showerror("AshlingBank- Error", "Please enter a positive value.")
+                elif deposit_amount > 5000:
+                    messagebox.showerror("AshlingBank- Error", "You can only deposit a maximum of £5,000.")
+                else:
+                    messagebox.showinfo("AshlingBank - Confirmation", " £" + deposit_amount + " has been added to your balance")
+                    return deposit_amount
+
+            except ValueError:
+                messagebox.showerror("AshlingBank- Error", "Invalid input. Please enter a valid amount. ")
+
+
 
     def reveal(self, event):
-        entered_username= self.username.get()
+        entered_username = self.username.get()
         entered_password = self.password.get()
 
-        db = sqlite3.connect("Ashling-UserRecords.db")
-
-        if entered_username == self.username_placeholder_text or entered_password == self.password_placeholder_text:
-            messagebox.showerror("AshlingBank- Error", "Invalid Details")
+        if self.validate_user_input(entered_username, entered_password):
+            user_details = self.get_user_details_from_db(entered_username, entered_password)
+            if user_details:
+                firstname = user_details[0]
+                messagebox.showinfo("AshlingBank- Confirmation", f"Login Successful!\n Hi, {firstname}.")
+                self.reset_entry()
+            else:
+                messagebox.showerror("AshlingBank- Error", "Invalid Login Details")
         else:
-            try:
-                cursor = db.cursor()
-                cursor.execute("SELECT firstname, username, password FROM userPersonalDetails WHERE username=? AND password=?", (entered_username, entered_password))
-                record = cursor.fetchone()
+            messagebox.showerror("AshlingBank- Error", "Invalid Details")
 
-                if record:
-                    firstname = record[0]
-                    messagebox.showinfo("AshlingBank- Confirmation", f"Login Successful!\n Hi, {firstname}.")
-                    self.reset_entry()
-                else:
-                    messagebox.showerror("AshlingBank- Error", "Invalid Login Details")
+    def validate_user_input(self, username, password):
+        return username != self.username_placeholder_text and password != self.password_placeholder_text
 
-            except Exception as e:
-                print(f'Error: {e}')
-                messagebox.showerror("AshlingBank- Error", "Unable to process query")
-                db.rollback()
-            finally:
-                db.close()
+    def get_user_details_from_db(self, username, password):
+        try:
+            db = sqlite3.connect('Ashling-UserRecords.db')
+            cursor = db.cursor()
+            cursor.execute("SELECT firstname FROM userPersonalDetails WHERE username=? AND password=?", (username, password))
+            return cursor.fetchone()
+        except sqlite3.Error as e:
+            print(f'Database Error: {e}')
+            return None
+        finally:
+            db.close()
+
 
     # Functions
     def reset_entry(self):
@@ -149,7 +178,7 @@ class UserSignup:
         self.deposit_btn = Label(self.account_details_frame, highlightthickness=2, text='Add Money',
                                font=('Helvetica', 13, 'bold'), fg='black', bg='white',
                                bd=2, cursor='hand2')
-        self.deposit_btn.bind("<Button-1>")
+        self.deposit_btn.bind("<Button-1>", self.add_money)
         self.deposit_btn.place(x=730, y=420)
 
         # Get the values from the db
@@ -244,6 +273,6 @@ class UserSignup:
 
 if __name__ == "__main__":
     window = Tk()
-    UserSignup(window)
+    UserViewAccount(window)
     window.title("Ashling-View Account Details")
     window.mainloop()

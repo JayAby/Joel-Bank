@@ -12,7 +12,7 @@ from email import encoders
 import os
 
 
-class UserSignup:
+class UserLogin:
     def __init__(self, window):
         self.window = window
         self.window.geometry('1024x768')
@@ -235,6 +235,6 @@ class UserSignup:
 
 if __name__ == "__main__":
     window = Tk()
-    UserSignup(window)
+    UserLogin(window)
     window.title("Ashling-User Login")
     window.mainloop()
