@@ -132,7 +132,7 @@ class UserLogin:
         body = f"""
         Dear {firstname} ,
 
-        You are receiving this username because you have signed in using your account details on this day: {today_str}
+        You are receiving this email because you have signed in using your account details on this day: {today_str}
         
         If you didn't sign in, please do well to let us know
 

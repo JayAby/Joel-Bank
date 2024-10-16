@@ -55,6 +55,19 @@ try:
 
     print('transaction details record table created successfully')
 
+    # Create daily deposit table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS dailyDeposits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER,
+    amount REAL,
+    transaction_date TEXT DEFAULT (datetime('now', 'localtime')),    
+    FOREIGN KEY (customer_id) REFERENCES userPersonalDetails(customer_id)
+    );
+    ''')
+
+    print('daily log table created successfully')
+
     db.commit()
     print('\n\nCustomer record tables created successfully')
 except Exception as e:

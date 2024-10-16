@@ -6,6 +6,7 @@ db = sqlite3.connect('Ashling-UserRecords.db')
 # Query to select all records from userPersonalDetails
 viewquery1 = "SELECT * FROM userPersonalDetails;"
 viewquery2 = "SELECT * FROM userAccountDetails;"
+viewquery3 = "SELECT * FROM transactionDetails;"
 
 # Remove query (if needed)
 # removequery = "DELETE FROM userPersonalDetails;"

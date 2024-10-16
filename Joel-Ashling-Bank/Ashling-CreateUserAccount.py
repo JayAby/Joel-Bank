@@ -266,7 +266,7 @@ class UserSignup:
 
     def save_pin(self, account_number, user_pin):
         db = sqlite3.connect('Ashling-UserRecords.db')
-        update_query = "UPDATE userPersonalDetails SET pin = ? WHERE accountnumber = ?"
+        update_query = "UPDATE userAccountDetails SET pin = ? WHERE account_number = ?"
 
         try:
             cursor = db.cursor()
