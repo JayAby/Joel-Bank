@@ -194,6 +194,7 @@ class UserViewAccount:
                 ''', (customer_id,))
                 account_details = cursor.fetchone()
 
+                # Check if account_details exist
                 if account_details:
                     print(f"Account Details: {account_details}")  # Debugging statement
 
