@@ -90,7 +90,7 @@ class UserLogin:
         entered_password = self.password.get()
 
         # Connect the DB
-        db = sqlite3.connect('Ashling-UserRecords.db')
+        db = sqlite3.connect('Ashling_UserRecords.db')
 
         if entered_email == self.email_placeholder_text or entered_password == self.password_placeholder_text:
             messagebox.showerror("AshlingBank- Error", "Invalid Details")

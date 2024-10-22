@@ -1,6 +1,6 @@
 import sqlite3
 
-db = sqlite3.connect('Ashling-UserRecords.db')
+db = sqlite3.connect('Ashling_UserRecords.db')
 try:
     cursor = db.cursor()
 

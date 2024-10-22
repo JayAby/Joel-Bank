@@ -13,3 +13,5 @@ def generate_username(firstname, lastname):
 firstname = input("Enter your firstname")
 lastname = input("Enter your lastname")
 generate_username(firstname,lastname)
+
+

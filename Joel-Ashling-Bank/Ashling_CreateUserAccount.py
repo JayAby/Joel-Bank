@@ -198,7 +198,7 @@ class UserSignup:
 
             # If all Validations pass including PIN validation
             # Connect to DB
-            db = sqlite3.connect('Ashling-UserRecords.db')
+            db = sqlite3.connect('Ashling_UserRecords.db')
             insert_query1 = (
                 "insert into userPersonalDetails(firstname, lastname, username, email, dob, password) values (?,?,?,?,?,?);"
             )
@@ -265,7 +265,7 @@ class UserSignup:
         return(username)
 
     def save_pin(self, account_number, user_pin):
-        db = sqlite3.connect('Ashling-UserRecords.db')
+        db = sqlite3.connect('Ashling_UserRecords.db')
         update_query = "UPDATE userAccountDetails SET pin = ? WHERE account_number = ?"
 
         try:
