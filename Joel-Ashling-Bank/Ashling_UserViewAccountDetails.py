@@ -198,6 +198,11 @@ class UserViewAccount:
                 if account_details:
                     print(f"Account Details: {account_details}")  # Debugging statement
 
+                    # Temporarily enable textboxes
+                    self.account_number.config(state=NORMAL)
+                    self.balance.config(state=NORMAL)
+                    self.sortcode.config(state=NORMAL)
+
                     # Clear the current text in the entry fields before inserting new data
                     self.account_number.delete(0, 'end')  # Clear existing text
                     self.balance.delete(0, 'end')
@@ -207,6 +212,11 @@ class UserViewAccount:
                     self.account_number.insert(0, account_details[0])
                     self.balance.insert(0, account_details[1])
                     self.sortcode.insert(0, account_details[2])
+
+                    # Set textboxes back to read only
+                    self.account_number.config(state=DISABLED)
+                    self.balance.config(state=DISABLED)
+                    self.sortcode.config(state=DISABLED)
                 else:
                     print("No account details found for this customer.")  # Debugging statement
                     messagebox.showerror("Error", "No account details found.")
@@ -227,20 +237,102 @@ class UserViewAccount:
                 db = sqlite3.connect(DB_PATH)
                 cursor = db.cursor()
                 try:
+                    # Fetch user details for sending email
+                    cursor.execute('''
+                        SELECT customer_id, email, firstname
+                        FROM userPersonalDetails
+                        WHERE username = ?;
+                        ''', (self.logged_in_username,))
+                    user_record = cursor.fetchone()
+
+                    if not user_record:
+                        messagebox.showerror("Error", "User not found in the database.")
+                        return
+
+                    customer_id, email_address, firstname = user_record
+
+                    # Update balance for usrt
                     cursor.execute('''
                         UPDATE userAccountDetails 
                         SET balance = balance + ? 
-                        WHERE customer_id = (SELECT customer_id FROM userPersonalDetails WHERE username = ?);
-                    ''', (amount, self.logged_in_username))
+                        WHERE customer_id = ?;
+                    ''', (amount, customer_id))
                     db.commit()
+
+                    # Notify the user
                     messagebox.showinfo("Success", f"£{amount:.2f} has been deposited to your account.")
                     self.populate_account_info(self.logged_in_username)  # Refresh the displayed account info
+
+                    # Send notification email
+                    today_str = datetime.today().strftime("%Y-%m-%d")
+                    self.send_notification_email(firstname, email_address, today_str, amount)
+
                 except sqlite3.Error as e:
                     print(f'Database Error: {e}')
+                    db.rollback()
+                    messagebox.showerror("Error", "Failed to update your account balance")
                 finally:
                     db.close()
             else:
                 messagebox.showwarning("Invalid Amount", "Please enter a valid amount.")
+
+    def send_notification_email(self, firstname, email_address, today_str, amount_deposited):
+        # Email setup
+        sender_email = "jay.aby.codes@gmail.com"
+        sender_password = "jwcabxkjbjjoqbck"
+        subject = "Ashling Bank- Deposit Notification"
+
+        # Create the username content
+        message = MIMEMultipart()
+        message['From'] = sender_email
+        message['To'] = email_address
+        message['Subject'] = subject
+
+        # Email body
+        body = f"""
+        Dear {firstname} ,
+
+        You are receiving this email because you have deposited this amount £{amount_deposited} on this day: {today_str}
+
+        If you do not authorize this transaction, please contact us immediately.
+
+        Best regards,
+        Ashling Bank Team
+        """
+
+        message.attach(MIMEText(body, 'plain'))
+
+        # Attaching an image
+        image_path = "Image/AshlingBank.png"
+        try:
+            with open(image_path, "rb") as image_file:
+                # Set the MIMEBase object
+                image = MIMEBase('application', 'octet-stream')
+                image.set_payload(image_file.read())
+
+                # Encode the image in base64 and attach it to the username
+                encoders.encode_base64(image)
+
+                # Add the necessary headers for the image
+                image.add_header('Content-Disposition', f"attachment; filename = {os.path.basename(image_path)}")
+
+                # Attach the image to the message
+                message.attach(image)
+
+        except Exception as e:
+            print(f"Error attaching image: {e}")
+
+        # Sending the username
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            text = message.as_string()
+            server.sendmail(sender_email, email_address, text)
+            server.quit()
+            print("Email sent successfully")
+        except Exception as e:
+            print(f"Error sending username: {e}")
 
     def on_entry_click(self, event):
         if self.username.get() == self.username_placeholder_text:

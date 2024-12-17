@@ -82,14 +82,17 @@ class UserLogin:
     # Functions
 
     def login(self, event):
-        # get the current day
+        # Get the current day
         today = datetime.today()
         today_str = today.strftime("%Y-%m-%d")
 
-        entered_email = self.email.get()
-        entered_password = self.password.get()
+        entered_email = self.email.get().strip()
+        entered_password = self.password.get().strip()
 
-        # Connect the DB
+        print(f"Entered Email: {entered_email}")
+        print(f"Entered Password: {entered_password}")
+
+        # Connect to the database
         db = sqlite3.connect('Ashling_UserRecords.db')
 
         if entered_email == self.email_placeholder_text or entered_password == self.password_placeholder_text:
@@ -97,20 +100,23 @@ class UserLogin:
         else:
             try:
                 cursor = db.cursor()
-                # use parameterized query to avoid SQL injection
-                cursor.execute("SELECT firstname, email, password FROM userPersonalDetails WHERE email=? AND password=?", (entered_email, entered_password))
+                # Use parameterized query to avoid SQL injection
+                query = "SELECT firstname, email, password FROM userPersonalDetails WHERE email=? AND password=?"
+                print(f"Executing Query: {query} with parameters: ({entered_email}, {entered_password})")
+                cursor.execute(query, (entered_email, entered_password))
                 record = cursor.fetchone()
+
+                print(f"Query Result: {record}")  # Debugging the result
 
                 if record:
                     firstname = record[0]
                     messagebox.showinfo("AshlingBank- Confirmation", f"Login Successful! Welcome, {firstname}.")
-                    self.send_notification_email(firstname,entered_email,today_str)
-
+                    self.send_notification_email(firstname, entered_email, today_str)
                 else:
                     messagebox.showerror("AshlingBank- Error", "Invalid Login Details")
 
             except Exception as e:
-                print(f'Error: {e}')
+                print(f"Error: {e}")
                 messagebox.showerror("AshlingBank- Error", "Unable to process query")
                 db.rollback()
             finally:
