@@ -251,12 +251,18 @@ class UserViewAccount:
 
                     customer_id, email_address, firstname = user_record
 
-                    # Update balance for usrt
+                    # Update balance for user
                     cursor.execute('''
                         UPDATE userAccountDetails 
                         SET balance = balance + ? 
                         WHERE customer_id = ?;
                     ''', (amount, customer_id))
+
+                    # Insert into transaction table
+                    cursor.execute('''
+                        INSERT INTO transactionDetails (recipient_account_id, amount_out, transaction_status, transaction_type)
+                        VALUES (?,?, 'Completed', 'deposit');
+                        ''', (customer_id, amount))
                     db.commit()
 
                     # Notify the user

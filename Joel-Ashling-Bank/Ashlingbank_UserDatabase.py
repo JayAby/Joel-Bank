@@ -68,6 +68,16 @@ try:
 
     print('daily log table created successfully')
 
+    # # Alter table
+    # cursor.execute('''
+    # ALTER TABLE transactionDetails (
+    #     ADD COLUMN transaction_type TEXT NOT NULL DEFAULT 'transfer',
+    #     ADD COLUMN transaction_reference TEXT);
+    # ''')
+
+    print('Transaction detais table altered')
+
+
     db.commit()
     print('\n\nCustomer record tables created successfully')
 except Exception as e:

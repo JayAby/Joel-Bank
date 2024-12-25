@@ -14,7 +14,7 @@ removequery = "DELETE FROM userPersonalDetails;"
 cursor = db.cursor()
 
 # Execute the query to view records
-cursor.execute(viewquery1)
+cursor.execute(viewquery3)
 
 # To delete the records, uncomment this line
 # cursor.execute(removequery)
