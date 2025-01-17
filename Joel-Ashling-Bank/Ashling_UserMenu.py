@@ -3,12 +3,11 @@ from tkinter import font
 from PIL import ImageTk, Image
 
 class UserMenu:
-    def __init__(self, window):
+    def __init__(self, window, logged_in_user):
         self.window = window
-        self.window.geometry('1024x768')
-        self.window.state('zoomed')
-        self.window.resizable(0, 0)
         self.window.configure(bg='#ffffff')
+
+        self.logged_in_user = logged_in_user
 
         # Create a frame for the signup section
         self.menu_frame = Frame(self.window, width=1200, height=500, bg='#f0f0f0')
@@ -44,7 +43,7 @@ class UserMenu:
         self.transfer_money = Label(self.menu_frame, highlightthickness=2, text='Transfer Money',
                                     font=('Helvetica', 13, 'bold'), fg='black', bg='white',
                                     bd=2)
-        self.transfer_money.bind("<Button-1>")
+        self.transfer_money.bind("<Button-1>", self.open_user_transfer)
         self.transfer_money.place(x=690, y=160, width=300, height=30)
 
         #
@@ -69,8 +68,8 @@ class UserMenu:
         self.view_personal_details.place(x=690, y=340, width=300, height=30)
 
 
-if __name__ == "__main__":
-    window = Tk()
-    UserMenu(window)
-    window.title("Ashling-User Menu")
-    window.mainloop()
+    def open_user_transfer(self, event):
+        self.menu_frame.destroy()
+        from Ashling_UserTransfer import UserTransfer
+        UserTransfer(self.window, self.logged_in_user)
+

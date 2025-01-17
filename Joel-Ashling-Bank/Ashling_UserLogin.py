@@ -11,16 +11,12 @@ from email.mime.text import MIMEText
 from email import encoders
 import os
 
-
 class UserLogin:
     def __init__(self, window):
         self.window = window
-        self.window.geometry('1024x768')
-        self.window.state('zoomed')
-        self.window.resizable(0, 0)
         self.window.configure(bg='#ffffff')
 
-        # Create a frame for the signup section
+        # Create a frame for the login section
         self.login_frame = Frame(self.window, width=1200, height=500, bg='#f0f0f0')
         self.login_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
@@ -78,8 +74,16 @@ class UserLogin:
         self.show_password_btn.bind("<Button-1>", self.toggle_password)
         self.show_password_btn.place(x=820, y=220, width=100, height=30)
 
+        self.no_account_btn = Label(self.login_frame, highlightthickness=2, text='No account? Create one',
+                               font=('Helvetica', 11, 'bold'), fg='black', bg='#f0f0f0',
+                               bd=2, cursor='hand2')
+        self.no_account_btn.bind("<Button-1>", self.create_new_account)
+        self.no_account_btn.place(x=665, y=350)
 
     # Functions
+    def create_new_account(self, event):
+        from Ashling_CreateUserAccount import UserSignup
+        UserSignup(self.window)
 
     def login(self, event):
         # Get the current day
@@ -101,7 +105,7 @@ class UserLogin:
             try:
                 cursor = db.cursor()
                 # Use parameterized query to avoid SQL injection
-                query = "SELECT firstname, email, password FROM userPersonalDetails WHERE email=? AND password=?"
+                query = "SELECT firstname, email, password, customer_id  FROM userPersonalDetails WHERE email=? AND password=?"
                 print(f"Executing Query: {query} with parameters: ({entered_email}, {entered_password})")
                 cursor.execute(query, (entered_email, entered_password))
                 record = cursor.fetchone()
@@ -109,9 +113,16 @@ class UserLogin:
                 print(f"Query Result: {record}")  # Debugging the result
 
                 if record:
-                    firstname = record[0]
+                    firstname, email, password, customer_id = record
+                    logged_in_user = {
+                        "firstname": firstname,
+                        "email": email,
+                        "customer_id": customer_id
+                    }
                     messagebox.showinfo("AshlingBank- Confirmation", f"Login Successful! Welcome, {firstname}.")
                     self.send_notification_email(firstname, entered_email, today_str)
+                    # Transition to UserMenu
+                    self.open_user_menu(logged_in_user)
                 else:
                     messagebox.showerror("AshlingBank- Error", "Invalid Login Details")
 
@@ -121,6 +132,11 @@ class UserLogin:
                 db.rollback()
             finally:
                 db.close()
+
+    def open_user_menu(self, logged_in_user):
+        self.login_frame.destroy()
+        from Ashling_UserMenu import UserMenu
+        UserMenu(self.window, logged_in_user)
 
     def send_notification_email(self, firstname, email_address, today_str):
         # Email setup
@@ -236,11 +252,3 @@ class UserLogin:
             self.password.config(show='•')
             self.show_password_btn.config(text='Show password')
 
-
-
-
-if __name__ == "__main__":
-    window = Tk()
-    UserLogin(window)
-    window.title("Ashling-User Login")
-    window.mainloop()

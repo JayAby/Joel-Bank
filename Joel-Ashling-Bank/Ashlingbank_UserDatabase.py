@@ -70,9 +70,9 @@ try:
 
     # # Alter table
     # cursor.execute('''
-    # ALTER TABLE transactionDetails (
-    #     ADD COLUMN transaction_type TEXT NOT NULL DEFAULT 'transfer',
-    #     ADD COLUMN transaction_reference TEXT);
+    #         ADD COLUMN transaction_type TEXT NOT NULL DEFAULT 'transfer',
+    #     ADD COLUMN transaction_reference TEXT
+    # ALTER TABLE transactionDetails ADD COLUMN recipient_name VARCHAR(100);
     # ''')
 
     print('Transaction detais table altered')

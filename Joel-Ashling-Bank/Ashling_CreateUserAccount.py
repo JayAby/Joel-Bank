@@ -18,9 +18,6 @@ import customtkinter
 class UserSignup:
     def __init__(self, window):
         self.window = window
-        self.window.geometry('1024x768')
-        self.window.state('zoomed')
-        self.window.resizable(0, 0)
         self.window.configure(bg='#ffffff')
 
         # Create a frame for the signup section
@@ -112,7 +109,17 @@ class UserSignup:
         self.show_password_btn.bind("<Button-1>", self.toggle_password)
         self.show_password_btn.place(x=820, y=280, width=100, height=30)
 
+        self.have_account_btn = Label(self.signup_frame, highlightthickness=2, text='Have an account? Login here',
+                                      font=('Helvetica', 11, 'bold'), fg='black', bg='#f0f0f0',
+                                      bd=2, cursor='hand2')
+        self.have_account_btn.bind("<Button-1>", self.login)
+        self.have_account_btn.place(x=679, y=450)
+
     # Functions
+
+    def login(self, event):
+        from Ashling_UserLogin import UserLogin
+        UserLogin(self.window)
 
     def toggle_password(self, event):
         if self.password.cget('show') == '•':
@@ -248,7 +255,6 @@ class UserSignup:
             # if date conversion fails, it means the date is invalid
             messagebox.showerror("AshlingBank- Error",
                                  "Invalid date. Please enter a valid date in dd/mm/yyyy format.")
-
 
     # Function to generate account_id
     def generate_account_id(self,auto_id):
@@ -468,9 +474,3 @@ class UserSignup:
             if self.confirm_password.get() != self.confirm_password_placeholder_text:
                 self.confirm_password.config(show='•')
 
-
-if __name__ == "__main__":
-    window = Tk()
-    UserSignup(window)
-    window.title("Ashling-Create Account")
-    window.mainloop()

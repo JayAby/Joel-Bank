@@ -372,9 +372,3 @@ class UserViewAccount:
         else:
             self.password.config(show='')
 
-
-# Main code to run the app
-if __name__ == '__main__':
-    root = Tk()
-    app = UserViewAccount(root)
-    root.mainloop()
